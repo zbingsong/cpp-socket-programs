@@ -1,7 +1,6 @@
 class Parity2DEncoder {
   public:
     static const unsigned int SEG_LENGTH;
-    // char* encode(const char* data);
     bool verify(const char* codeword);
     char** partitionData(const char* data, const unsigned int segNum);
     char* insertRowParities(char** partData, const unsigned int segNum);
