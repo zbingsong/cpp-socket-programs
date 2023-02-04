@@ -1,1 +1,31 @@
 Bingsong Zeng
+bingsong
+Ubuntu 16.04 LTS
+
+crc_encoder.h & crc_encoder.cpp:
+  A standalone CRC encoder, able to:
+  1. get CRC code of a binary string
+  2. generate a binary string encoded with CRC
+  3. verify that an encoded binary string has no bit error 
+  (to the extent of what CRC can do)
+
+parity2d_encoder.h & parity2d_encoder.cpp:
+  A standalone 2D parity encoder, able to:
+  1. get row and column parity bits of a binary string
+  2. generate a binary string encoded with 2D parity
+  3. verify that an encoded binary string has no bit error
+  (to the extent of what 2D parity can do)
+
+crc_tx.cpp:
+  Reads dataTx.txt, extract all binary strings, encodes them
+  with CRC, and print out the encoded string and its CRC code
+
+crc_rx.cpp:
+  Reads dataRx.txt, extracts all binary strings, and checks if
+  each string has bit errors
+
+crc_vs_parity2d.cpp:
+  Reads dataVs.txt, extracts all binary strings and their 
+  corresponding error bits, encodes each string by CRC and 2D 
+  parity, induces errors on the encoded strings with error 
+  bits, and try to detect the errors with CRC and 2D parity

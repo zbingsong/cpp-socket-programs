@@ -2,7 +2,7 @@ CXXFLAGS = -g -Wall -std=c++11
 
 default: all
 
-all: crc_tx crc_rx crc_vs_parity2d
+all: crc_tx crc_rx crc_vs_parity2d clean run
 
 crc_tx: crc_tx.o crc_encoder.o
 	g++ $(CXXFLAGS) -o crc_tx $^
@@ -30,3 +30,8 @@ parity2d_encoder.o: parity2d_encoder.h parity2d_encoder.cpp
 
 clean:
 	rm *.o
+
+run:
+	./crc_tx
+	./crc_rx
+	./crc_vs_parity2d
