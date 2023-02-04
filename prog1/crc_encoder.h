@@ -10,8 +10,10 @@ class CrcEncoder {
   public:
     /// @brief the CRC generator to be used (17 bits)
     static const char* GENERATOR;
+
     /// @brief the length of remainder R (16 bits), one less than generator length
     static const unsigned int R_LENGTH;
+
     /**
      * Generate the remainder of a binary string; does not modify the string
      * 
@@ -23,6 +25,7 @@ class CrcEncoder {
      * not including the terminating null character
     */
     char* getRemainder(const char* data);
+
     /**
      * Encode a binary string with CRC given its remainder; does not modify the
      * original string
@@ -33,6 +36,7 @@ class CrcEncoder {
      * at least 2 * R_LENGTH chars not including the terminating null character
     */
     char* getCodeword(const char* data, const char* remainder);
+
     /**
      * Verify the integrity of an encoded binary string
      * PRECONDITION:
@@ -54,6 +58,7 @@ class CrcEncoder {
      * the start of the part where XOR with generator will happen
     */
     void divideStep(char* & divideHead);
+    
     /**
      * Copies and pads the binary string to be encoded with R_LENGTH trailing '0';
      * does not modify the original binary string
