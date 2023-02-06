@@ -2,6 +2,16 @@ Bingsong Zeng
 bingsong
 Ubuntu 16.04 LTS
 
+CRC encoding is done by crc_encoder. Call getRemainder() to get the
+CRC code of data, and then getCodeword() to get the encoded data.
+Call verifyCodeword() to check codeword integrity.
+
+2D parity encoding is done by parity2d_encoder. Data is partitioned
+into segments by partitionData(), and then parity bits are inserted 
+by insertRowParities() and insertColumnParities(). Finally, the
+partitioned data is reduced to a string by reducePartDataToStr().
+Call verify() to check codeword integrity.
+
 crc_encoder.h & crc_encoder.cpp:
   A standalone CRC encoder, able to:
   1. get CRC code of a binary string
