@@ -35,15 +35,20 @@ bool ClientProgm::setup_client()
 {
   struct addrinfo *server_info;
   // create client socket and connect to server
-  if (!this->get_addr(server_info)) return false;
-  if (!this->create_socket(server_info)) return false;
-  if (!this->connect_to_server(server_info)) return false;
-  freeaddrinfo(server_info);
-  // send client port to server as client id
-  if (!this->send_client_id()) return false;
-
-  std::cout << "Client is up and running." << std::endl;
-  return true;
+  if (
+    this->get_addr(server_info)
+    && this->create_socket(server_info)
+    && this->connect_to_server(server_info)
+  ) {
+    freeaddrinfo(server_info);
+    // send client port to server as client id
+    if (!this->send_client_id()) return false;
+    std::cout << "Client is up and running." << std::endl;
+    return true;
+  } else {
+    freeaddrinfo(server_info);
+    return false;
+  }
 }
 
 
@@ -58,7 +63,7 @@ void ClientProgm::run_client()
       std::cout << "Enter Department Name: ";
       dep_name = this->read_input(std::cin);
     }
-    
+    // query for dep_name
     if (!this->request_from_server(dep_name)) break;
     std::cout 
       << "\n-----Start a new query-----"
@@ -97,14 +102,13 @@ bool ClientProgm::get_addr(struct addrinfo *& server_info)
   status = getaddrinfo(SERVER_IP, SERVER_PORT, &hints, &server_info);
   if (status != 0) {
     perror(gai_strerror(status));
-    freeaddrinfo(server_info);
     return false;
   }
   return true;
 }
 
 // https://beej.us/guide/bgnet/html/
-bool ClientProgm::create_socket(struct addrinfo *server_info)
+bool ClientProgm::create_socket(const struct addrinfo *server_info)
 {
   this->sockfd = socket(
     server_info->ai_family, 
@@ -113,14 +117,13 @@ bool ClientProgm::create_socket(struct addrinfo *server_info)
   );
   if (this->sockfd == -1) {
     perror("Socket creation error");
-    freeaddrinfo(server_info);
     return false;
   }
   return true;
 }
 
 // https://beej.us/guide/bgnet/html/
-bool ClientProgm::connect_to_server(struct addrinfo *server_info)
+bool ClientProgm::connect_to_server(const struct addrinfo *server_info)
 {
   int connect_status;
 
@@ -131,7 +134,6 @@ bool ClientProgm::connect_to_server(struct addrinfo *server_info)
   );
   if (connect_status == -1) {
     perror("Client connection error");
-    freeaddrinfo(server_info);
     return false;
   }
   return true;
@@ -147,6 +149,7 @@ bool ClientProgm::send_client_id()
   ssize_t message_size;
 
   // https://gist.github.com/listnukira/4045436
+  // get client port
   client_addrlen = sizeof client_addr;
   getsock_status = getsockname(
     this->sockfd, 
@@ -222,6 +225,7 @@ void ClientProgm::recv_serv_num(const std::string& dep_name)
 
 bool ClientProgm::request_from_server(const std::string& dep_name)
 {
+  // only do recv if send is successful
   if (this->send_dep_name(dep_name)) {
     this->recv_serv_num(dep_name);
     return true;

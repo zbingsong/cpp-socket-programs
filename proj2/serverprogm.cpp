@@ -44,22 +44,28 @@ const int ServerProgm::ID_BUFFER_SIZE = 6;
 bool ServerProgm::setup_server()
 {
   struct addrinfo *server_info;
-
-  // fill server_info with values needed to establish a server-side socket
-  if (!this->get_addr(server_info)) return false;
-  // create the socket, modifying file descriptor pointed to by sockfd
-  if (!this->create_socket(server_info)) return false;
-  // bind the newly created socket to the specified port
-  if (!this->bind_socket(server_info)) return false;
-  // make socket listen to incoming messages on the port
-  if (!this->start_listen(server_info)) return false;
-  // done with server_info
-  freeaddrinfo(server_info);
-  std::cout << "Main server is up and running" << std::endl;
-  // read in data
-  std::ifstream infile(DATAFILE);
-  this->read_file(infile);
-  return true;
+  
+  if (
+    // fill server_info with values needed to establish a server-side socket
+    this->get_addr(server_info) 
+    // create the socket, modifying file descriptor pointed to by sockfd
+    && this->create_socket(server_info)
+    // bind the newly created socket to the specified port
+    && this->bind_socket(server_info)
+    // make socket listen to incoming messages on the port
+    && !this->start_listen(server_info)
+  ) {
+    // done with server_info
+    freeaddrinfo(server_info);
+    std::cout << "Main server is up and running" << std::endl;
+    // read in data
+    std::ifstream infile(DATAFILE);
+    this->read_file(infile);
+    return true;
+  } else {
+    freeaddrinfo(server_info);
+    return false;
+  }
 }
 
 
@@ -75,23 +81,24 @@ void ServerProgm::run_server()
       break;
     }
 
+    // if failed to create a new process, drop this client
     process_id = fork();
     if (process_id == -1) {
       perror("Process forking error");
+      close(client_sockfd);
       continue;
     }
 
     if (process_id == 0) {
       // if on child process
       std::string client_id;
-
       // close the listening socket in child process
       close(sockfd);
       // get client's id
       client_id = recv_client_id(client_sockfd);
       // std::cout << "client id is " << client_id << std::endl;
       // keep getting client queries until client decides to disconnect
-      while (this->respond_to_client(client_sockfd, client_id)) {}
+      while (this->respond_to_client(client_sockfd, client_id))
       // std::cout << "client disconnected" << std::endl;
       // close the connection to client and exit child process
       close(client_sockfd);
@@ -127,6 +134,9 @@ void ServerProgm::print_list_file(intvec& distinct_dep_nums)
     << this->serv_nums.size() 
     << std::endl;
 
+  // get two iterators on vector of server numbers and department names,
+  // respectively, and icrement them together
+  // the two vectors should have the same size
   for (
     serv_iter = this->serv_nums.cbegin(), 
       dep_iter = distinct_dep_nums.cbegin(); 
@@ -160,7 +170,7 @@ void ServerProgm::read_file(std::istream& input)
     this->getline_no_cr(input, line);
     servid = line;
     this->serv_nums.push_back(servid);
-    // get department as comma-separated string
+    // get department as comma-separated string and put in an iss
     this->getline_no_cr(input, line);
     std::istringstream iss(line);
     while (iss.good()) {
@@ -172,11 +182,13 @@ void ServerProgm::read_file(std::istream& input)
         distinct_dep_counter ++;
       }
     }
+    // add number of distinct departments in a server to vector
     distinct_dep_nums.push_back(distinct_dep_counter);
   }
   std::cout 
     << "Main server has read the department list from list.txt." 
     << std::endl;
+  // print on-screen message
   this->print_list_file(distinct_dep_nums);
 }
 
@@ -200,14 +212,13 @@ bool ServerProgm::get_addr(struct addrinfo *& server_info)
   status = getaddrinfo(NULL, SERVER_PORT, &hints, &server_info);
   if (status != 0) {
     perror(gai_strerror(status));
-    freeaddrinfo(server_info);
     return false;
   }
   return true;
 }
 
 // https://beej.us/guide/bgnet/html/
-bool ServerProgm::create_socket(struct addrinfo *server_info)
+bool ServerProgm::create_socket(const struct addrinfo *server_info)
 {
   this->sockfd = socket(
     server_info->ai_family, 
@@ -216,14 +227,13 @@ bool ServerProgm::create_socket(struct addrinfo *server_info)
   );
   if (this->sockfd == -1) {
     perror("Socket creation error");
-    freeaddrinfo(server_info);
     return false;
   }
   return true;
 }
 
 // https://beej.us/guide/bgnet/html/
-bool ServerProgm::bind_socket(struct addrinfo *server_info)
+bool ServerProgm::bind_socket(const struct addrinfo *server_info)
 {
   int bind_status;
 
@@ -234,21 +244,19 @@ bool ServerProgm::bind_socket(struct addrinfo *server_info)
   );
   if (bind_status == -1) {
     perror("Socket binding error");
-    freeaddrinfo(server_info);
     return false;
   }
   return true;
 }
 
 // https://beej.us/guide/bgnet/html/
-bool ServerProgm::start_listen(struct addrinfo *server_info)
+bool ServerProgm::start_listen()
 {
   int listen_status;
 
   listen_status = listen(this->sockfd, BACKLOG);
   if (listen_status == -1) {
     perror("Socket listening error");
-    freeaddrinfo(server_info);
     return false;
   }
   return true;
@@ -261,6 +269,7 @@ bool ServerProgm::accept_client_connection(int *client_sockfdptr)
   socklen_t client_addr_size;
 
   client_addr_size = sizeof client_addr;
+  // try to accept client connection
   *client_sockfdptr = accept(
     this->sockfd, 
     (struct sockaddr *)&client_addr, 
@@ -304,6 +313,7 @@ std::string ServerProgm::recv_dep_name(
     perror("Server recv error");
     return "";
   }
+  // client disconnected
   if (message_size == 0) {
     return "";
   }
@@ -333,7 +343,7 @@ void ServerProgm::send_serv_num(
     perror("Server send error");
     return;
   }
-  if (serv_num.length() == 0) {
+  if (serv_num  == "-1") {
     std::cout 
       << "The Main Server has send \"Department Name: Not found\" to client "
       << client_id
@@ -360,7 +370,7 @@ bool ServerProgm::respond_to_client(
 
   dep_name = this->recv_dep_name(client_sockfd, client_id);
 
-  // if dep_name length is 0, the client has ended connection
+  // if dep_name length is 0, the client has disconnected
   if (dep_name.length() == 0) {
     return false;
   }
