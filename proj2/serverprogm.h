@@ -160,7 +160,8 @@ class ServerProgm {
     std::string recv_dep_name(const int client_sockfd, const std::string &client_id);
 
     /**
-     * send to client the backend server ID corresponding to client's query
+     * send to client the backend server ID corresponding to client's query, or 
+     * "-1" if no such server
      * @param client_sockfd file descriptor for socket for client connection
      * @param serv_num  reference to backend server ID string
      * @param client_id reference to client id string

@@ -75,9 +75,24 @@ class ClientProgm {
     bool send_client_id();
 
     /**
-     * 
+     * send department name as query to server
+     * @param dep_name  reference to department name string
+     * @return  boolean indicating if this operation is successful
     */
     bool send_dep_name(const std::string& dep_name);
+
+    /**
+     * receive server ID corrsponding to department name from server, or "-1" 
+     * if no such server; print out the result
+     * @param dep_name  reference to department name string
+    */
     void recv_serv_num(const std::string& dep_name);
+
+    /**
+     * handle query sending and receiving
+     * send department name to server, and if this is successful, receive
+     * server response
+     * @param dep_name  reference to department name string
+    */
     bool request_from_server(const std::string& dep_name);
 };
