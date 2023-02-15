@@ -201,7 +201,7 @@ void ClientProgm::recv_serv_num(const std::string& dep_name)
   ssize_t message_size;
   std::string serv_num;
 
-  message_size = recv(sockfd, buffer, BUFFER_SIZE, 0);
+  message_size = recv(this->sockfd, buffer, BUFFER_SIZE, 0);
 
   if (message_size < 0) {
     perror("Server recv error");

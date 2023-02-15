@@ -53,7 +53,7 @@ bool ServerProgm::setup_server()
     // bind the newly created socket to the specified port
     && this->bind_socket(server_info)
     // make socket listen to incoming messages on the port
-    && !this->start_listen(server_info)
+    && this->start_listen()
   ) {
     // done with server_info
     freeaddrinfo(server_info);
@@ -93,12 +93,12 @@ void ServerProgm::run_server()
       // if on child process
       std::string client_id;
       // close the listening socket in child process
-      close(sockfd);
+      close(this->sockfd);
       // get client's id
       client_id = recv_client_id(client_sockfd);
       // std::cout << "client id is " << client_id << std::endl;
       // keep getting client queries until client decides to disconnect
-      while (this->respond_to_client(client_sockfd, client_id))
+      while (this->respond_to_client(client_sockfd, client_id)) {}
       // std::cout << "client disconnected" << std::endl;
       // close the connection to client and exit child process
       close(client_sockfd);
@@ -315,6 +315,7 @@ std::string ServerProgm::recv_dep_name(
   }
   // client disconnected
   if (message_size == 0) {
+    // std::cout << "receive empty message from client" << std::endl;
     return "";
   }
 
@@ -367,7 +368,7 @@ bool ServerProgm::respond_to_client(
 ) {
   std::string serv_num;
   std::string dep_name;
-
+  // std::cout << "respond to client" << std::endl;
   dep_name = this->recv_dep_name(client_sockfd, client_id);
 
   // if dep_name length is 0, the client has disconnected

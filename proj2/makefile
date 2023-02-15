@@ -3,7 +3,7 @@ CXX = g++
 
 default: all
 
-all: servermain client
+all: servermain client clean
 
 servermain: servermain.o serverprogm.o
 	$(CXX) $(CXXFLAGS) -o servermain $^
