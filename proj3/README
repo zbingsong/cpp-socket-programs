@@ -1,0 +1,68 @@
+Bingsong Zeng
+bingsong
+Ubuntu 16.04
+
+
+servermain creates a ServerProgm object, which sets up a server socket
+and listens for incoming connections. For each connection, it creates
+a new socket dedicated for this connection and forks a child process
+to handle this socket.
+client creates a ClientProgm object, which sets up a client socket and 
+connects to the server socket at predefined address and port. It then
+sends the client port number as client ID, and queries for department
+name input by user to server.
+
+
+servermain.cpp
+  contains the main() function, creates ServerProgm object that handles
+  all server activites
+serverprogm.h
+  class definition for ServerProgm, exposes a few static constants and
+  two public methods: setup_server() and run_server()
+serverprogm.cpp
+  methods definition for ServerProgm
+
+client.cpp
+  contains the main() function, creates ClientProgm object that handles
+  all client activites
+clientprogm.h
+  class definition for ClientProgm, exposes a few static constants and
+  two public methods: setup_client() and run_client()
+clientprogm.cpp
+  methods definition for ClientProgm
+
+
+Messages:
+  client_id message:
+    a string of at most 5 characters, representing port number of 
+    client, sent by client
+  dep_name message:
+    a string of at most 20 characters, representing the department name
+    that user wants to query for, sent by client
+  serv_num message:
+    a string of at most 20 characters, representing the backend server 
+    number corresponding to a department name, or "-1" if no backend 
+    server corresponds to this name, sent by server
+
+
+Reused code:
+  https://beej.us/guide/bgnet/html/
+    serverprogm.cpp
+      get_addr()
+      create_socket()
+      bind_socket()
+      start_listen()
+      accept_client_connection()
+    clientprogm.cpp
+      get_addr()
+      create_socket()
+      connect_to_server()
+
+  https://stackoverflow.com/questions/8960055/getline-to-string-copies-newline-as-well
+    serverprogm.cpp
+      getline_no_cr()
+  
+  https://gist.github.com/listnukira/4045436
+    clientprogm.cpp
+      send_client_id(): get port of socket
+      
