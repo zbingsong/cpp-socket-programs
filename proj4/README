@@ -1,0 +1,79 @@
+Bingsong Zeng
+3378103104
+Ubuntu 16.04
+
+
+A client and a distributed server are created. The distributed server
+contains a main server and two backend servers. The main server examines
+and forwards client queries to appropriate backend server, and forwards
+backend responses to client. The backend servers store data and 
+answer queries forwarded by main server.
+
+
+CODE FILES:
+clientprogm.cpp, clientprogm.h
+Client class that connects to main server, sends queries from user inputs,
+and display server responses.
+
+client.cpp
+Create an instance of ClientPorgm and use it as client
+
+serverprogm.cpp, serverprogm.h
+Main server class that connects to both client and backend servers, intercepts
+queries and responses.
+
+servermain.cpp
+Create an instance of ServerProgm and use it as the main server
+
+backendprog.cpp, backendprog.h
+Backend server class that reads data file and answers queries forwarded by
+main server
+
+serverA.cpp, serverB.cpp
+Create instances of BackendProg and use them as backend servers
+
+
+MESSAGE FORMAT:
+client query: "<department>,<student id>"
+main server requesting department list: "0" (a single character)
+department not found message: "<department>: Not found\n" (same as displayed message)
+student id not found message: "Student <id>: Not found\n" (same as displayed message)
+query result: "Student GPA: <gpa>\nPercentage Rank: <rank>%\nDepartment GPA Mean: 
+<mean>\nDepartment GPA Variance: <var>\nDepartment Max GPA: <max>\nDepartment Min 
+GPA: <min>\nFriend Recommendation: <student id>\n" (same as displayed message)
+
+
+REUSED CODE:
+Beej's Guide
+get_addr(), create_socket(), bind_socket(), start_listen(), UDP_connect(), 
+accept_client_connection()
+
+https://gist.github.com/listnukira/4045436
+get_client_id()
+
+
+EXTRA CREDIT
+Recommendation algorithm:
+Suppose we have a student A (for whom we want to find a friend) and some other
+student B. A has a few percentage rankings in some departments; B has rankings in
+some departments, too. 
+
+For a department that A belongs to, we take the difference between A's ranking and 
+B's ranking, and take the square of the difference. We do this for every department 
+that A belongs to, and sum up the squared differences. This sum is the 
+"recommendation score" of B with respect to A.
+
+We find the minimum of such recommendation scores among all students other than A,
+and the student that corresponds to the minimum score is the recommended friend.
+
+Special cases:
+1. If A is in some department, but B is not in that department, then B's ranking 
+is considered to be 0.0%. In other words, if B did not join the same department 
+as A, their recommendation score will be heavily penalized.
+2. If B is in some department, but A is not in that department, the department will
+not be considered when calculating the recommendation score. In other words, it 
+doesn't matter what extra departments B has.
+3. If there is a tie in recommendation score, the student with the lowest student
+ID will be picked.
+4. If there is only one student on a backend server, that student will get no
+recommended friend.
